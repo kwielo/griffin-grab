@@ -1,4 +1,4 @@
-# Copy Page Address
+# Griffin Grab
 
 A Chrome extension that copies the current tab’s address to the clipboard.
 
@@ -6,7 +6,7 @@ Press **Control+Command+C** on Mac, or **Ctrl+Shift+U** on Windows, Linux, and C
 
 Nothing is sent off the computer. The extension has no host permission and does not call the network. It only reads the active tab address when you use the shortcut or the icon, then writes that text to the local clipboard.
 
-Author: Krzysztof Wielogórski (kwielogorski@gmail.com)
+Author: Krzysztof Wielogórski (contact@wielo.co)
 
 ## Install
 
