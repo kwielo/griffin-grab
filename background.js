@@ -40,7 +40,7 @@ const flashBadge = async (text, color) => {
 const showCopied = async () => {
   await chrome.action.setBadgeText({ text: "" });
   await chrome.action.setIcon({ path: SUCCESS_ICON });
-  await delay(1200);
+  await delay(2500);
   await chrome.action.setIcon({ path: RESTING_ICON });
 };
 
