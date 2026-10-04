@@ -6,7 +6,8 @@
   "author": "Krzysztof Wielogórski <contact@wielo.co>",
   "permissions": ["activeTab", "clipboardWrite", "offscreen"],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "action": {
     "default_title": "Griffin Grab",
