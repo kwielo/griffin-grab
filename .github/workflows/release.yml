@@ -1,0 +1,92 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release, such as 1.1.0
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Publish GitHub release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set the release version
+        id: version
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          version="${REQUESTED_VERSION//[[:space:]]/}"
+          if [[ ! "$version" =~ ^(0|[1-9][0-9]{0,4})(\.(0|[1-9][0-9]{0,4})){0,3}$ ]]; then
+            echo "Use one to four numbers separated by dots, such as 1.1.0." >&2
+            exit 1
+          fi
+          IFS=. read -r -a parts <<< "$version"
+          for part in "${parts[@]}"; do
+            if (( part > 65535 )); then
+              echo "Each version number must be 65535 or less." >&2
+              exit 1
+            fi
+          done
+          git fetch --tags origin
+          if git ls-remote --exit-code --tags origin "refs/tags/v${version}" >/dev/null; then
+            echo "Tag v${version} already exists." >&2
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Update the manifest version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp)"
+          jq --indent 2 --arg version "$VERSION" '.version = $version' manifest.json > "$tmp"
+          mv "$tmp" manifest.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet -- manifest.json; then
+            git add manifest.json
+            git commit -m "Release ${VERSION}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+
+      - name: Package the extension
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          archive="${RUNNER_TEMP}/griffin-grab-${VERSION}.zip"
+          zip -r "$archive" \
+            manifest.json \
+            background.js \
+            offscreen.html \
+            offscreen.js \
+            icons
+          unzip -l "$archive"
+          echo "archive=${archive}" >> "$GITHUB_ENV"
+
+      - name: Publish the release
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create "v${VERSION}" "$archive" \
+            --title "Griffin Grab ${VERSION}" \
+            --notes "Packaged Chrome extension. Load the unzipped folder from chrome://extensions, or upload the zip to the Chrome Web Store. Griffin Grab copies the current page address to the local clipboard and does not send it anywhere."
