@@ -83,9 +83,49 @@ const applyThemeIcon = () => {
     .catch(() => {});
 };
 
-applyThemeIcon();
-chrome.runtime.onStartup.addListener(applyThemeIcon);
-chrome.runtime.onInstalled.addListener(applyThemeIcon);
+const formatShortcut = (shortcut) => {
+  const mac =
+    shortcut.includes("MacCtrl") ||
+    shortcut.includes("Command") ||
+    shortcut.includes("Option");
+  return shortcut
+    .split("+")
+    .map((part) => {
+      if (part === "MacCtrl") return "Control";
+      if (part === "Alt" && mac) return "Option";
+      return part;
+    })
+    .join("+");
+};
+
+const shortcutTitle = (command) => {
+  const action = command.description;
+  if (!command.shortcut) return `${action}: no shortcut assigned`;
+  return `${action}: ${formatShortcut(command.shortcut)}`;
+};
+
+const refreshShortcutMenu = async () => {
+  const commands = await chrome.commands.getAll();
+  const items = commands.filter((command) => command.name && command.description);
+  await chrome.contextMenus.removeAll();
+  for (const command of items) {
+    chrome.contextMenus.create({
+      id: `shortcut-${command.name}`,
+      title: shortcutTitle(command),
+      contexts: ["action"],
+      enabled: false,
+    });
+  }
+};
+
+const start = () => {
+  applyThemeIcon();
+  refreshShortcutMenu().catch(() => {});
+};
+
+start();
+chrome.runtime.onStartup.addListener(start);
+chrome.runtime.onInstalled.addListener(start);
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message?.target !== "background" || message?.type !== "color-scheme") return;

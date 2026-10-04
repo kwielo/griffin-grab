@@ -1,12 +1,13 @@
 {
   "manifest_version": 3,
   "name": "Griffin Grab",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "Copy the current page address to the clipboard. The address stays on this computer.",
   "author": "Krzysztof Wielogórski <contact@wielo.co>",
   "permissions": [
     "activeTab",
     "clipboardWrite",
+    "contextMenus",
     "offscreen"
   ],
   "background": {
