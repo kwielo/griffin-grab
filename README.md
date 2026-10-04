@@ -21,7 +21,7 @@ On Mac the shortcut is Control+Command+C (`MacCtrl+Command+C`). Chrome treats a 
 
 On GitHub, open **Actions**, choose **Release**, and run the workflow. Enter a version such as `1.1.0`. Chrome accepts one to four numbers separated by dots, and each number must be 65535 or less.
 
-The workflow writes that version into `manifest.json` when it changed, tags `v1.1.0`, and attaches `griffin-grab-1.1.0.zip` to a GitHub release. Load the unzipped folder from `chrome://extensions`, or upload the zip to the Chrome Web Store.
+The workflow writes that version into `manifest.json` when it changed, tags `v1.1.0`, and attaches `griffin-grab-1.1.0.zip` to a GitHub release. The release notes are the matching section of `CHANGELOG.md`. Load the unzipped folder from `chrome://extensions`, or upload the zip to the Chrome Web Store.
 
 ## Permissions
 

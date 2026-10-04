@@ -81,6 +81,23 @@ jobs:
           unzip -l "$archive"
           echo "archive=${archive}" >> "$GITHUB_ENV"
 
+      - name: Read the changelog
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          notes="${RUNNER_TEMP}/release-notes.md"
+          awk -v version="$VERSION" '
+            $0 ~ "^## " version "($| )" { capture = 1; next }
+            capture && $0 ~ "^## " { exit }
+            capture { print }
+          ' CHANGELOG.md > "$notes"
+          if ! grep -q '[^[:space:]]' "$notes"; then
+            echo "CHANGELOG.md has no notes for ${VERSION}." >&2
+            exit 1
+          fi
+          echo "notes=${notes}" >> "$GITHUB_ENV"
+
       - name: Publish the release
         env:
           VERSION: ${{ steps.version.outputs.version }}
@@ -89,4 +106,4 @@ jobs:
           set -euo pipefail
           gh release create "v${VERSION}" "$archive" \
             --title "Griffin Grab ${VERSION}" \
-            --notes "Packaged Chrome extension. Load the unzipped folder from chrome://extensions, or upload the zip to the Chrome Web Store. Griffin Grab copies the current page address to the local clipboard and does not send it anywhere."
+            --notes-file "$notes"
