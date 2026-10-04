@@ -4,6 +4,10 @@ Versions match the `version` field in `manifest.json`. GitHub releases use the s
 
 ## Unreleased
 
+## 1.1.2 - 2026-10-04
+
+- Draw the toolbar icon as a longer chain link, with a clear opening.
+
 ## 1.1.1 - 2026-10-04
 
 - Keep the toolbar icon a brighter green for longer after the address is copied.
