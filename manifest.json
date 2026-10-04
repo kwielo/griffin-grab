@@ -4,7 +4,11 @@
   "version": "1.0.0",
   "description": "Copy the current page address to the clipboard. The address stays on this computer.",
   "author": "Krzysztof Wielogórski <contact@wielo.co>",
-  "permissions": ["activeTab", "clipboardWrite", "offscreen"],
+  "permissions": [
+    "activeTab",
+    "clipboardWrite",
+    "offscreen"
+  ],
   "background": {
     "service_worker": "background.js",
     "type": "module"
