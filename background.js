@@ -26,11 +26,28 @@ const iconPaths = (name) => ({
   128: `icons/${name}128.png`,
 });
 
-const RESTING_ICON = iconPaths("icon");
-const SUCCESS_ICON = iconPaths("success");
+const LIGHT_ICON = iconPaths("icon");
+const DARK_ICON = iconPaths("dark");
+const SUCCESS_LIGHT_ICON = iconPaths("success");
+const SUCCESS_DARK_ICON = iconPaths("success-dark");
+
+const prefersDark = () =>
+  typeof matchMedia === "function" &&
+  matchMedia("(prefers-color-scheme: dark)").matches;
+
+const restingIcon = () => (prefersDark() ? DARK_ICON : LIGHT_ICON);
+const copiedIcon = () => (prefersDark() ? SUCCESS_DARK_ICON : SUCCESS_LIGHT_ICON);
+
+let showingCopied = false;
+let iconOverridden = false;
+
+const applyIcon = async (path) => {
+  iconOverridden = true;
+  await chrome.action.setIcon({ path });
+};
 
 const flashBadge = async (text, color) => {
-  await chrome.action.setIcon({ path: RESTING_ICON });
+  await applyIcon(restingIcon());
   await chrome.action.setBadgeBackgroundColor({ color });
   await chrome.action.setBadgeText({ text });
   await delay(1200);
@@ -38,11 +55,22 @@ const flashBadge = async (text, color) => {
 };
 
 const showCopied = async () => {
+  showingCopied = true;
   await chrome.action.setBadgeText({ text: "" });
-  await chrome.action.setIcon({ path: SUCCESS_ICON });
+  await applyIcon(copiedIcon());
   await delay(2500);
-  await chrome.action.setIcon({ path: RESTING_ICON });
+  showingCopied = false;
+  await applyIcon(restingIcon());
 };
+
+if (typeof matchMedia === "function") {
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+    if (!iconOverridden) return;
+    chrome.action.setIcon({
+      path: showingCopied ? copiedIcon() : restingIcon(),
+    });
+  });
+}
 
 const tabUrl = async (tab) => {
   const direct = tab?.url || tab?.pendingUrl;
