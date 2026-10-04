@@ -4,6 +4,10 @@ Versions match the `version` field in `manifest.json`. GitHub releases use the s
 
 ## Unreleased
 
+## 1.1.9 - 2026-10-04
+
+- Make the link on dark toolbars almost white.
+
 ## 1.1.8 - 2026-10-04
 
 - Use a dark gray link on light toolbars and an off-white link on dark toolbars.
