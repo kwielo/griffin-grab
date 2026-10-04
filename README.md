@@ -2,7 +2,7 @@
 
 A Chrome extension that copies the current tab’s address to the clipboard.
 
-Press **Control+Command+C** on Mac, or **Ctrl+Shift+U** on Windows, Linux, and ChromeOS. Chrome does not allow Ctrl+Alt shortcuts. Clicking the toolbar icon copies the address as well. A short **OK** on the icon means the address was copied. **!** means Chrome did not provide an address for that tab, or the clipboard write failed.
+Press **Control+Command+C** on Mac, or **Ctrl+Shift+U** on Windows, Linux, and ChromeOS. Chrome does not allow Ctrl+Alt shortcuts. Clicking the toolbar icon copies the address as well. The icon turns green when the address was copied. **!** means Chrome did not provide an address for that tab, or the clipboard write failed.
 
 Nothing is sent off the computer. The extension has no host permission and does not call the network. It only reads the active tab address when you use the shortcut or the icon, then writes that text to the local clipboard.
 

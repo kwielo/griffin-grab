@@ -19,11 +19,29 @@ const isConnectionError = (error) => {
   );
 };
 
+const iconPaths = (name) => ({
+  16: `icons/${name}16.png`,
+  32: `icons/${name}32.png`,
+  48: `icons/${name}48.png`,
+  128: `icons/${name}128.png`,
+});
+
+const RESTING_ICON = iconPaths("icon");
+const SUCCESS_ICON = iconPaths("success");
+
 const flashBadge = async (text, color) => {
+  await chrome.action.setIcon({ path: RESTING_ICON });
   await chrome.action.setBadgeBackgroundColor({ color });
   await chrome.action.setBadgeText({ text });
   await delay(1200);
   await chrome.action.setBadgeText({ text: "" });
+};
+
+const showCopied = async () => {
+  await chrome.action.setBadgeText({ text: "" });
+  await chrome.action.setIcon({ path: SUCCESS_ICON });
+  await delay(1200);
+  await chrome.action.setIcon({ path: RESTING_ICON });
 };
 
 const tabUrl = async (tab) => {
@@ -91,7 +109,7 @@ const copyTab = async (tab) => {
 
   try {
     await writeClipboard(url);
-    await flashBadge("OK", "#1B6B58");
+    await showCopied();
   } catch {
     await flashBadge("!", "#8C3A3A");
   }
