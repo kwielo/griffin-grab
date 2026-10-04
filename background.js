@@ -26,11 +26,75 @@ const iconPaths = (name) => ({
   128: `icons/${name}128.png`,
 });
 
-const RESTING_ICON = iconPaths("icon");
-const SUCCESS_ICON = iconPaths("success");
+const LIGHT_ICON = iconPaths("icon");
+const DARK_ICON = iconPaths("dark");
+const SUCCESS_LIGHT_ICON = iconPaths("success");
+const SUCCESS_DARK_ICON = iconPaths("success-dark");
+
+let darkTheme = false;
+let showingCopied = false;
+
+const restingIcon = () => (darkTheme ? DARK_ICON : LIGHT_ICON);
+const copiedIcon = () => (darkTheme ? SUCCESS_DARK_ICON : SUCCESS_LIGHT_ICON);
+
+const applyIcon = async (path) => {
+  await chrome.action.setIcon({ path });
+};
+
+const ensureOffscreen = async () => {
+  if (await chrome.offscreen.hasDocument()) return;
+  await chrome.offscreen.createDocument({
+    url: "offscreen.html",
+    reasons: [
+      chrome.offscreen.Reason.CLIPBOARD,
+      chrome.offscreen.Reason.MATCH_MEDIA,
+    ],
+    justification:
+      "Write the page address to the clipboard and match the toolbar icon to the browser theme.",
+  });
+};
+
+const readColorScheme = async () => {
+  let lastError;
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      await ensureOffscreen();
+      const response = await chrome.runtime.sendMessage({
+        target: "offscreen",
+        type: "color-scheme",
+      });
+      if (response?.ok) {
+        darkTheme = Boolean(response.dark);
+        return;
+      }
+      throw new Error(response?.error || "Could not read the color scheme");
+    } catch (error) {
+      lastError = error;
+      if (!isConnectionError(error) || attempt === 4) break;
+      await delay(40 * (attempt + 1));
+    }
+  }
+  throw lastError;
+};
+
+const applyThemeIcon = () => {
+  readColorScheme()
+    .then(() => applyIcon(showingCopied ? copiedIcon() : restingIcon()))
+    .catch(() => {});
+};
+
+applyThemeIcon();
+chrome.runtime.onStartup.addListener(applyThemeIcon);
+chrome.runtime.onInstalled.addListener(applyThemeIcon);
+
+chrome.runtime.onMessage.addListener((message) => {
+  if (message?.target !== "background" || message?.type !== "color-scheme") return;
+  darkTheme = Boolean(message.dark);
+  applyIcon(showingCopied ? copiedIcon() : restingIcon());
+});
 
 const flashBadge = async (text, color) => {
-  await chrome.action.setIcon({ path: RESTING_ICON });
+  await applyIcon(restingIcon());
   await chrome.action.setBadgeBackgroundColor({ color });
   await chrome.action.setBadgeText({ text });
   await delay(1200);
@@ -38,10 +102,12 @@ const flashBadge = async (text, color) => {
 };
 
 const showCopied = async () => {
+  showingCopied = true;
   await chrome.action.setBadgeText({ text: "" });
-  await chrome.action.setIcon({ path: SUCCESS_ICON });
+  await applyIcon(copiedIcon());
   await delay(2500);
-  await chrome.action.setIcon({ path: RESTING_ICON });
+  showingCopied = false;
+  await applyIcon(restingIcon());
 };
 
 const tabUrl = async (tab) => {
@@ -58,13 +124,7 @@ const tabUrl = async (tab) => {
 
 class ClipboardDocument {
   static async open() {
-    if (!(await chrome.offscreen.hasDocument())) {
-      await chrome.offscreen.createDocument({
-        url: "offscreen.html",
-        reasons: [chrome.offscreen.Reason.CLIPBOARD],
-        justification: "Write the current page address to the clipboard.",
-      });
-    }
+    await ensureOffscreen();
     return new ClipboardDocument();
   }
 
@@ -88,11 +148,8 @@ class ClipboardDocument {
     throw lastError;
   }
 
-  async [Symbol.asyncDispose]() {
-    if (await chrome.offscreen.hasDocument()) {
-      await chrome.offscreen.closeDocument();
-    }
-  }
+  // Keep the document open so it can watch the browser theme.
+  async [Symbol.asyncDispose]() {}
 }
 
 const writeClipboard = async (text) => {
