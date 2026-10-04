@@ -1,6 +1,7 @@
 const COPY_COMMAND = "copy-page-address";
 
 let copyQueue = Promise.resolve();
+let iconApplied = false;
 
 const enqueueCopy = (task) => {
   copyQueue = copyQueue.then(task, task).catch(() => {});
@@ -41,6 +42,9 @@ const applyIcon = async (path) => {
   await chrome.action.setIcon({ path });
 };
 
+const applyCurrentIcon = () =>
+  applyIcon(showingCopied ? copiedIcon() : restingIcon());
+
 const ensureOffscreen = async () => {
   if (await chrome.offscreen.hasDocument()) return;
   await chrome.offscreen.createDocument({
@@ -77,10 +81,12 @@ const readColorScheme = async () => {
   throw lastError;
 };
 
-const applyThemeIcon = () => {
-  readColorScheme()
-    .then(() => applyIcon(showingCopied ? copiedIcon() : restingIcon()))
-    .catch(() => {});
+const syncTheme = async () => {
+  const previous = darkTheme;
+  await readColorScheme();
+  if (iconApplied && previous === darkTheme && !showingCopied) return;
+  iconApplied = true;
+  await applyCurrentIcon();
 };
 
 const formatShortcut = (shortcut) => {
@@ -119,7 +125,7 @@ const refreshShortcutMenu = async () => {
 };
 
 const start = () => {
-  applyThemeIcon();
+  syncTheme().catch(() => {});
   refreshShortcutMenu().catch(() => {});
 };
 
@@ -129,8 +135,16 @@ chrome.runtime.onInstalled.addListener(start);
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message?.target !== "background" || message?.type !== "color-scheme") return;
-  darkTheme = Boolean(message.dark);
-  applyIcon(showingCopied ? copiedIcon() : restingIcon());
+  const next = Boolean(message.dark);
+  if (next === darkTheme && iconApplied) return;
+  darkTheme = next;
+  iconApplied = true;
+  applyCurrentIcon();
+});
+
+chrome.windows.onFocusChanged.addListener((windowId) => {
+  if (windowId === chrome.windows.WINDOW_ID_NONE) return;
+  syncTheme().catch(() => {});
 });
 
 const flashBadge = async (text, color) => {
@@ -188,7 +202,7 @@ class ClipboardDocument {
     throw lastError;
   }
 
-  // Keep the document open so it can watch the browser theme.
+  // Leave the document open so it can keep watching the browser theme.
   async [Symbol.asyncDispose]() {}
 }
 

@@ -4,6 +4,10 @@ Versions match the `version` field in `manifest.json`. GitHub releases use the s
 
 ## Unreleased
 
+## 2.0.1 - 2026-10-04
+
+- Update the toolbar icon when the browser switches between light and dark, without reloading the extension.
+
 ## 2.0.0 - 2026-10-04
 
 - Right-click the toolbar icon to see the keyboard shortcut for copying the page address.
