@@ -4,6 +4,10 @@ Versions match the `version` field in `manifest.json`. GitHub releases use the s
 
 ## Unreleased
 
+## 1.1.10 - 2026-10-04
+
+- Draw the link white on dark toolbars, with a bolder stroke. Chrome does not switch toolbar icons from the manifest, so the extension sets the white or dark gray icon from the browser theme.
+
 ## 1.1.9 - 2026-10-04
 
 - Make the link on dark toolbars almost white.
