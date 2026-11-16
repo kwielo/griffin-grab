@@ -1,0 +1,76 @@
+{
+  "manifest_version": 3,
+  "name": "Griffin Grab",
+  "version": "1.0.0",
+  "description": "Copy the current page address to the clipboard. The address stays on this computer.",
+  "author": "Krzysztof Wielogórski <contact@wielo.co>",
+  "homepage_url": "https://github.com/kwielo/griffin-grab-firefox",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "griffin-grab@wielo.co",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  },
+  "permissions": [
+    "activeTab",
+    "clipboardWrite",
+    "contextMenus"
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "type": "module"
+  },
+  "action": {
+    "default_area": "navbar",
+    "default_title": "Griffin Grab",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "theme_icons": [
+      {
+        "light": "icons/dark16.png",
+        "dark": "icons/icon16.png",
+        "size": 16
+      },
+      {
+        "light": "icons/dark32.png",
+        "dark": "icons/icon32.png",
+        "size": 32
+      },
+      {
+        "light": "icons/dark48.png",
+        "dark": "icons/icon48.png",
+        "size": 48
+      },
+      {
+        "light": "icons/dark128.png",
+        "dark": "icons/icon128.png",
+        "size": 128
+      }
+    ]
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "commands": {
+    "copy-page-address": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+U",
+        "mac": "MacCtrl+Command+C"
+      },
+      "description": "Copy the current page address"
+    }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
